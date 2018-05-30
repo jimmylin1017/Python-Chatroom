@@ -23,6 +23,7 @@ class MyClient():
                     data = self.serverSocket.recv(1024)
                     if data:
                         message = data.decode('UTF-8')
+                        print(message)
                         if clientName == message:
                             break
                 except socket.error as e:
@@ -70,6 +71,10 @@ class MyClient():
             print("Error: unable to start thread")
 
         while self.checkLogin:
-            message = input()
-            if(message):
-                self.SendMessage(message)
+            try:
+                message = input()
+                if(message):
+                    self.SendMessage(message)
+            except KeyboardInterrupt as e:
+                print("KeyboardInterrupt : %s" % e)
+                self.SendMessage("/logout")

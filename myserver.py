@@ -1,4 +1,4 @@
-import socket, select, sys
+import socket, select, sys, time
 
 class MyServer():
 
@@ -15,6 +15,7 @@ class MyServer():
     def Create(self):
         try:
             self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.serverSocket.bind(('0.0.0.0', self.serverPort)) # bind with any ip address by '0.0.0.0'
         except socket.error as e:
             print("server socket create failed : %s" % e)
@@ -60,6 +61,7 @@ class MyServer():
             self.clientSocketName[sock] = name
             self.clientSocketMap[name] = sock
             self.SendMessage(sock, name)
+            time.sleep(0.1)
             self.BroadCast("<client %s login>" % self.clientSocketName[sock])
 
     # delete client information
@@ -82,6 +84,8 @@ class MyServer():
         del self.clientSocketMap[self.clientSocketName[sock]]
         del self.clientSocketName[sock]
         self.BroadCast("<client %s is disconnect>" % tempName)
+
+        
 
     def Start(self):
         self.Create()
@@ -121,4 +125,4 @@ class MyServer():
                                 self.BroadCast(self.clientSocketName[sock] + " : " + message[0])
                     except socket.error as e:
                         print("server socket receive failed : %s" % e)
-                        self.DisConnect(sock) 
+                        self.DisConnect(sock)
