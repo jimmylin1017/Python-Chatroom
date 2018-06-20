@@ -1,4 +1,4 @@
-import socket, select
+import socket, select, time, os
 import threading
 
 class MyClient():
@@ -36,6 +36,43 @@ class MyClient():
             print("SendMessage : ", message)
         except socket.error as e:
             print("client socket send failed : %s" % e)
+    
+    def UpFile(self, fileName):
+        fileName=fileName
+        data='/up '+fileName
+        data = data.encode('UTF-8')
+        try:
+            self.serverSocket.send(data)
+            print("SendFile : ", fileName)
+            
+            file = open (fileName, "rb")
+            data = file.read(1024)
+            while (data):
+                #data = data.encode('UTF-8')
+                #print(data)
+                self.serverSocket.send(data)
+                data = file.read(1024)
+            file.close()
+            time.sleep(0.1)
+            data='/upf'
+            data = data.encode('UTF-8')
+            self.serverSocket.send(data)
+            print("SendFile finish")
+
+        except socket.error as e:
+            print("client socket send failed : %s" % e)
+
+
+    def DownFile(self, fileName):
+        fileName=fileName
+        data='/down '+fileName
+        data = data.encode('UTF-8')
+        try:
+            self.serverSocket.send(data)
+            print("DownFile : ", fileName)
+
+        except socket.error as e:
+            print("client socket send failed : %s" % e)
 
     def displayMessage(self):
         while 1:
@@ -49,11 +86,26 @@ class MyClient():
                     try:
                         data = sock.recv(1024)
                         if data:
-                            message = data.decode('UTF-8')
+                            message = data.decode('utf-8', 'ignore')
                             print(message)
                             if message == "/logout":
                                 self.checkLogin = False
                                 exit()
+                            
+                            message = message.split()
+                            if message[0]== "/down" :
+                                file = open(message[1],'wb') #open in binary      
+                                data = sock.recv(1024)
+                                while (data):
+                                    #data=data.decode('UTF-8')
+                                    #print(data)
+                                    if data.decode('utf-8', 'ignore')=='/downf':
+                                        break;
+                                    file.write(data)
+                                    data = sock.recv(1024)
+                                file.close()
+                                print("GetFile : %s finish" %message[1])
+
                     except socket.error as e:
                         print("client socket receive failed : %s" % e)
                         self.checkLogin = False
@@ -73,8 +125,17 @@ class MyClient():
         while self.checkLogin:
             try:
                 message = input()
-                if(message):
-                    self.SendMessage(message)
+
+    
+                messages = message.split()
+                if messages[0]== "/up" :
+                    self.UpFile(messages[1])
+                elif messages[0]== "/down" :
+                    self.DownFile(messages[1])
+
+                else:
+                    if(message):
+                        self.SendMessage(message)
             except KeyboardInterrupt as e:
                 print("KeyboardInterrupt : %s" % e)
                 self.SendMessage("/logout")

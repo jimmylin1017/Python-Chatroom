@@ -1,4 +1,4 @@
-import socket, select, sys, time
+import socket, select, sys, time, os
 
 class MyServer():
 
@@ -75,6 +75,57 @@ class MyServer():
         del self.clientSocketName[sock]
         self.BroadCast("<client %s is logout>" % tempName)
 
+    def LS(self,sock):
+        path = "file/"
+        dirs = os.listdir( path )
+        fileStr=""
+        for file in dirs:
+        	fileStr+=file+" "
+        self.SendMessage(sock, fileStr)
+
+
+    def UP(self,sock,fileName):
+        print("file uploaded: %s" %fileName)
+        file = open("file/"+fileName,'wb') #open in binary      
+        data = sock.recv(1024)
+        while (data):
+            #data=data.decode('UTF-8')
+            #print(data)
+            if data.decode('utf-8','ignore')=='/upf':
+                break;
+            file.write(data)
+            data = sock.recv(1024)
+        file.close()
+        print("file uploaded finish")
+
+    
+    def DOWN(self,sock,fileName):
+        print("file downloaded: %s" %fileName)
+        fileName=fileName
+        data='/down '+fileName
+        data = data.encode('UTF-8')
+        try:
+            sock.send(data)
+            print("SendFile : ", fileName)
+            file = open ("file/"+fileName, "rb")
+            #time.sleep(0.1)
+            data = file.read(1024)
+            while (data):
+                #data = data.encode('UTF-8')
+                #print(data)
+                sock.send(data)
+                data = file.read(1024)
+            file.close()
+            time.sleep(0.1)
+            data='/downf'
+            data = data.encode('UTF-8')
+            sock.send(data)
+            print("SendFile finish")
+
+        except socket.error as e:
+            print("client socket send failed : %s" % e)
+
+
     # if client disconnect unexpexted, delete client information
     # sock: source client fd
     def DisConnect(self, sock):
@@ -121,6 +172,13 @@ class MyServer():
                                 self.Logout(sock) 
                             elif message[0] == "/chat":
                                 self.UniCast(sock, message[1], message[2])
+                            elif message[0] == "/ls":
+                            	self.LS(sock)
+                            elif message[0] == "/up":
+                            	self.UP(sock,message[1])
+                            elif message[0] == "/down":
+                            	self.DOWN(sock,message[1])
+
                             else:
                                 self.BroadCast(self.clientSocketName[sock] + " : " + message[0])
                     except socket.error as e:
