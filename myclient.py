@@ -1,6 +1,12 @@
 import socket, select, time, os
 import threading
 
+RED = "\x1b[;31;1m"
+BLU = "\x1b[;34;1m"
+YEL = "\x1b[;33;1m"
+GRE = "\x1b[;32;1m"
+RESET = "\x1b[0;m"
+
 class MyClient():
 
     def __init__(self):
@@ -23,7 +29,7 @@ class MyClient():
                     data = self.serverSocket.recv(1024)
                     if data:
                         message = data.decode('UTF-8')
-                        print(message)
+                        #print(message)
                         if clientName == message:
                             break
                 except socket.error as e:
@@ -33,7 +39,7 @@ class MyClient():
         data = message.encode('UTF-8')
         try:
             self.serverSocket.send(data)
-            print("SendMessage : ", message)
+            #print("SendMessage : ", message)
         except socket.error as e:
             print("client socket send failed : %s" % e)
     
@@ -43,7 +49,7 @@ class MyClient():
         data = data.encode('UTF-8')
         try:
             self.serverSocket.send(data)
-            print("SendFile : ", fileName)
+            print(GRE+"SendFile : ", fileName,RESET)
             
             file = open (fileName, "rb")
             data = file.read(1024)
@@ -57,7 +63,7 @@ class MyClient():
             data='/upf'
             data = data.encode('UTF-8')
             self.serverSocket.send(data)
-            print("SendFile finish")
+            print(GRE+"SendFile finish",RESET)
 
         except socket.error as e:
             print("client socket send failed : %s" % e)
@@ -69,7 +75,7 @@ class MyClient():
         data = data.encode('UTF-8')
         try:
             self.serverSocket.send(data)
-            print("DownFile : ", fileName)
+            print(GRE+"DownFile : ", fileName,RESET)
 
         except socket.error as e:
             print("client socket send failed : %s" % e)
@@ -87,7 +93,15 @@ class MyClient():
                         data = sock.recv(1024)
                         if data:
                             message = data.decode('utf-8', 'ignore')
-                            print(message)
+                            if message[0]!='/':
+                                if message[0]=='[':
+                                    print(BLU+message+RESET)
+                                elif message[0]=='<':
+                                    print(YEL+message+RESET)
+                                else:
+                                    print(message)
+
+
                             if message == "/logout":
                                 self.checkLogin = False
                                 exit()
@@ -104,7 +118,7 @@ class MyClient():
                                     file.write(data)
                                     data = sock.recv(1024)
                                 file.close()
-                                print("GetFile : %s finish" %message[1])
+                                print(GRE+"GetFile : %s finish %s" %(message[1] , RESET))
 
                     except socket.error as e:
                         print("client socket receive failed : %s" % e)
@@ -126,16 +140,16 @@ class MyClient():
             try:
                 message = input()
 
-    
-                messages = message.split()
-                if messages[0]== "/up" :
-                    self.UpFile(messages[1])
-                elif messages[0]== "/down" :
-                    self.DownFile(messages[1])
+                if message !='':
+                    messages = message.split()
+                    if messages[0]== "/up" :
+                        self.UpFile(messages[1])
+                    elif messages[0]== "/down" :
+                        self.DownFile(messages[1])
 
-                else:
-                    if(message):
-                        self.SendMessage(message)
+                    else:
+                        if(message):
+                            self.SendMessage(message)
             except KeyboardInterrupt as e:
                 print("KeyboardInterrupt : %s" % e)
                 self.SendMessage("/logout")

@@ -11,6 +11,8 @@ class MyServer():
     def __init__(self, serverPort, clientSocketLimit = 5):
         self.serverPort = serverPort
         self.clientSocketLimit = clientSocketLimit
+        if not os.path.exists('file'):
+            os.makedirs('file')
     
     def Create(self):
         try:
@@ -150,6 +152,8 @@ class MyServer():
                 readable, _, _ = select.select(self.clientSocketList + [self.serverSocket], [], [])
             except select.error as e:
                 print("select failed : %s" % e)
+            except KeyboardInterrupt as e:
+                exit(0)
 
             for sock in readable:
                 if sock is self.serverSocket: # have new client which want to connect with server
