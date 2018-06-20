@@ -1,6 +1,7 @@
 import socket, select, time, os
 import threading
 
+#display color content
 RED = "\x1b[;31;1m"
 BLU = "\x1b[;34;1m"
 YEL = "\x1b[;33;1m"
@@ -29,7 +30,6 @@ class MyClient():
                     data = self.serverSocket.recv(1024)
                     if data:
                         message = data.decode('UTF-8')
-                        #print(message)
                         if clientName == message:
                             break
                 except socket.error as e:
@@ -39,7 +39,6 @@ class MyClient():
         data = message.encode('UTF-8')
         try:
             self.serverSocket.send(data)
-            #print("SendMessage : ", message)
         except socket.error as e:
             print("client socket send failed : %s" % e)
     
@@ -50,12 +49,9 @@ class MyClient():
         try:
             self.serverSocket.send(data)
             print(GRE+"SendFile : ", fileName,RESET)
-            
             file = open (fileName, "rb")
             data = file.read(1024)
             while (data):
-                #data = data.encode('UTF-8')
-                #print(data)
                 self.serverSocket.send(data)
                 data = file.read(1024)
             file.close()
@@ -64,10 +60,8 @@ class MyClient():
             data = data.encode('UTF-8')
             self.serverSocket.send(data)
             print(GRE+"SendFile finish",RESET)
-
         except socket.error as e:
             print("client socket send failed : %s" % e)
-
 
     def DownFile(self, fileName):
         fileName=fileName
@@ -76,7 +70,6 @@ class MyClient():
         try:
             self.serverSocket.send(data)
             print(GRE+"DownFile : ", fileName,RESET)
-
         except socket.error as e:
             print("client socket send failed : %s" % e)
 
@@ -86,7 +79,6 @@ class MyClient():
                 readable, _, _ = select.select([self.serverSocket], [], [])
             except select.error as e:
                 print("select failed : %s" % e)
-
             for sock in readable:
                 if sock is self.serverSocket:
                     try:
@@ -100,26 +92,20 @@ class MyClient():
                                     print(YEL+message+RESET)
                                 else:
                                     print(message)
-
-
                             if message == "/logout":
                                 self.checkLogin = False
                                 exit()
-                            
                             message = message.split()
                             if message[0]== "/down" :
-                                file = open(message[1],'wb') #open in binary      
+                                file = open(message[1],'wb') #open in binary
                                 data = sock.recv(1024)
                                 while (data):
-                                    #data=data.decode('UTF-8')
-                                    #print(data)
                                     if data.decode('utf-8', 'ignore')=='/downf':
                                         break;
                                     file.write(data)
                                     data = sock.recv(1024)
                                 file.close()
                                 print(GRE+"GetFile : %s finish %s" %(message[1] , RESET))
-
                     except socket.error as e:
                         print("client socket receive failed : %s" % e)
                         self.checkLogin = False
@@ -129,24 +115,20 @@ class MyClient():
     def Start(self, serverHost, serverPort):
         self.Connect(serverHost, serverPort)
         self.Login()
-
         try:
             thread = threading.Thread(target = self.displayMessage, args = ())
             thread.start()
         except:
             print("Error: unable to start thread")
-
         while self.checkLogin:
             try:
                 message = input()
-
                 if message !='':
                     messages = message.split()
                     if messages[0]== "/up" :
                         self.UpFile(messages[1])
                     elif messages[0]== "/down" :
                         self.DownFile(messages[1])
-
                     else:
                         if(message):
                             self.SendMessage(message)

@@ -13,7 +13,7 @@ class MyServer():
         self.clientSocketLimit = clientSocketLimit
         if not os.path.exists('file'):
             os.makedirs('file')
-    
+
     def Create(self):
         try:
             self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,21 +85,17 @@ class MyServer():
         	fileStr+=file+" "
         self.SendMessage(sock, fileStr)
 
-
     def UP(self,sock,fileName):
         print("file uploaded: %s" %fileName)
-        file = open("file/"+fileName,'wb') #open in binary      
+        file = open("file/"+fileName,'wb') #open in binary
         data = sock.recv(1024)
         while (data):
-            #data=data.decode('UTF-8')
-            #print(data)
             if data.decode('utf-8','ignore')=='/upf':
                 break;
             file.write(data)
             data = sock.recv(1024)
         file.close()
         print("file uploaded finish")
-
     
     def DOWN(self,sock,fileName):
         print("file downloaded: %s" %fileName)
@@ -110,11 +106,8 @@ class MyServer():
             sock.send(data)
             print("SendFile : ", fileName)
             file = open ("file/"+fileName, "rb")
-            #time.sleep(0.1)
             data = file.read(1024)
             while (data):
-                #data = data.encode('UTF-8')
-                #print(data)
                 sock.send(data)
                 data = file.read(1024)
             file.close()
@@ -123,10 +116,8 @@ class MyServer():
             data = data.encode('UTF-8')
             sock.send(data)
             print("SendFile finish")
-
         except socket.error as e:
             print("client socket send failed : %s" % e)
-
 
     # if client disconnect unexpexted, delete client information
     # sock: source client fd
@@ -137,8 +128,6 @@ class MyServer():
         del self.clientSocketMap[self.clientSocketName[sock]]
         del self.clientSocketName[sock]
         self.BroadCast("<client %s is disconnect>" % tempName)
-
-        
 
     def Start(self):
         self.Create()
@@ -182,7 +171,6 @@ class MyServer():
                             	self.UP(sock,message[1])
                             elif message[0] == "/down":
                             	self.DOWN(sock,message[1])
-
                             else:
                                 self.BroadCast(self.clientSocketName[sock] + " : " + message[0])
                     except socket.error as e:
