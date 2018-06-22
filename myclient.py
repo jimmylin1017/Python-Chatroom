@@ -48,6 +48,7 @@ class MyClient():
         data = data.encode('UTF-8')
         try:
             self.serverSocket.send(data)
+            time.sleep(0.1)
             print(GRE+"SendFile : ", fileName,RESET)
             file = open (fileName, "rb")
             data = file.read(1024)

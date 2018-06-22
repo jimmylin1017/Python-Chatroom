@@ -104,6 +104,7 @@ class MyServer():
         data = data.encode('UTF-8')
         try:
             sock.send(data)
+            time.sleep(0.1)
             print("SendFile : ", fileName)
             file = open ("file/"+fileName, "rb")
             data = file.read(1024)
