@@ -164,7 +164,7 @@ class MyServer():
                             elif message[0] == "/logout":
                                 self.Logout(sock) 
                             elif message[0] == "/chat":
-                                self.UniCast(sock, message[1], message[2])
+                                self.UniCast(sock, message[1],  ' '.join(str(e) for e in message[2: len(message) ])  )
                             elif message[0] == "/ls":
                             	self.LS(sock)
                             elif message[0] == "/up":
@@ -172,7 +172,7 @@ class MyServer():
                             elif message[0] == "/down":
                             	self.DOWN(sock,message[1])
                             else:
-                                self.BroadCast(self.clientSocketName[sock] + " : " + message[0])
+                                self.BroadCast(self.clientSocketName[sock] + " : " + ' '.join(str(e) for e in message[0: len(message) ]) )
                     except socket.error as e:
                         print("server socket receive failed : %s" % e)
                         self.DisConnect(sock)
